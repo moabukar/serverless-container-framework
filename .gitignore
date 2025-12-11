@@ -16,3 +16,11 @@
 **volume/*
 **volume/*
 **bin*
+
+
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfplan
+*.tfplan.backup
+**.terraform*
