@@ -1,0 +1,41 @@
+namespace: golang-demo
+
+deployment:
+  type: awsApi@1.0
+
+containers:
+  # API with Lambda compute (default)
+  api-lambda:
+    src: ./
+    routing:
+      # This will use the ALB path-based routing
+      pathPattern: /lambda/*
+      pathHealthCheck: /health
+    compute:
+      type: awsLambda
+      awsLambda:
+        memory: 512
+        timeout: 30
+    environment:
+      COMPUTE_TYPE: lambda
+      PORT: 8080
+
+  # Same API with Fargate compute (alternative)
+  api-fargate:
+    src: ./
+    routing:
+      pathPattern: /fargate/*
+      pathHealthCheck: /health
+    compute:
+      type: awsFargateEcs
+      awsFargateEcs:
+        memory: 512
+        cpu: 256
+        minInstances: 1
+        maxInstances: 2
+        autoScaling:
+          targetCpuUtilization: 70
+          targetMemoryUtilization: 80
+    environment:
+      COMPUTE_TYPE: fargate
+      PORT: 8080
