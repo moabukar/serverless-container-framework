@@ -14,4 +14,22 @@ export AWS_ACCESS_KEY_ID=your-key-id
 export AWS_SECRET_ACCESS_KEY=your-access-key
 export AWS_SESSION_TOKEN=your-session-token
 
+cd service
+npm install 
+serverless dev # local
+
+serverless deploy # deploy to aws
 ```
+
+## Cleanup
+
+```bash
+serverless remove
+serverless remove --force
+```
+
+## Troubleshooting
+
+- Ensure Docker daemon is running for local development
+- Check AWS credentials are properly configured using aws sts get-caller-identity
+- View detailed logs with serverless dev --debug or serverless deploy --debug
