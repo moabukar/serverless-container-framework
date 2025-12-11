@@ -1,4 +1,3 @@
-package goapi
 package main
 
 import (
@@ -48,7 +47,6 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract headers
 	headers := make(map[string]string)
 	for name, values := range r.Header {
 		if len(values) > 0 {
@@ -110,7 +108,6 @@ func loggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 func main() {
 	mux := http.NewServeMux()
 
-	// Register routes
 	mux.HandleFunc("/health", loggingMiddleware(healthHandler))
 	mux.HandleFunc("/api/hello", loggingMiddleware(apiHandler))
 	mux.HandleFunc("/api/users", loggingMiddleware(userHandler))

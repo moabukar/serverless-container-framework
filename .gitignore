@@ -12,3 +12,7 @@
 **/build/
 **/releases/
 **/release-builds/
+**volume
+**volume/*
+**volume/*
+**bin*

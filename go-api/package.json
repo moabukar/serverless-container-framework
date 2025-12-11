@@ -1,0 +1,29 @@
+{
+    "name": "golang-serverless-demo",
+    "version": "1.0.0",
+    "description": "Go API with Serverless Container Framework and LocalStack",
+    "scripts": {
+      "localstack:up": "docker compose -f docker-compose.localstack.yml up -d",
+      "localstack:down": "docker compose -f docker-compose.localstack.yml down",
+      "localstack:deploy": "AWS_ENDPOINT_URL=http://localhost:4566 AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test serverless deploy --stage local",
+      "localstack:remove": "AWS_ENDPOINT_URL=http://localhost:4566 AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test serverless remove --stage local",
+      "deploy": "serverless deploy",
+      "deploy:local": "npm run localstack:deploy",
+      "remove": "serverless remove",
+      "logs:lambda": "serverless logs --container api-lambda --tail",
+      "logs:fargate": "serverless logs --container api-fargate --tail"
+    },
+    "devDependencies": {
+      "serverless-localstack": "^1.2.0"
+    },
+    "keywords": [
+      "serverless",
+      "golang",
+      "lambda",
+      "fargate",
+      "localstack",
+      "containers"
+    ],
+    "author": "",
+    "license": "MIT"
+  }

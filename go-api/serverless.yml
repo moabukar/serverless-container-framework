@@ -2,23 +2,26 @@ service: go-api
 
 provider:
   name: aws
+  runtime: go1.x
   region: eu-west-2
   stage: ${opt:stage, 'dev'}
-  ecr:
-    images:
-      goapi:
-        path: ./
-        file: Dockerfile
 
 functions:
   api:
-    image:
-      name: goapi
+    handler: bin/main
     events:
       - httpApi: '*'
     environment:
       PORT: 8080
       COMPUTE_TYPE: lambda
+    memorySize: 512
+    timeout: 30
+
+package:
+  individually: true
+  patterns:
+    - '!./**'
+    - './bin/main'
 
 plugins:
   - serverless-localstack
@@ -29,3 +32,4 @@ custom:
       - local
     host: http://localhost
     edgePort: 4566
+    autostart: false

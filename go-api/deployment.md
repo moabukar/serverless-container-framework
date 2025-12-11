@@ -24,12 +24,10 @@ aws sts get-caller-identity
 ### 2. Install Serverless Framework
 
 ```bash
-npm install -g serverless
+npm install -g serverless@latest ## avoid using brew as it installs an older version
 
 # Verify installation
-serverless --version
-
-# Expected: Framework Core: 4.x or later
+serverless --version ## Expected: Framework Core: 4.x or later
 ```
 
 ### 3. Local Testing (Without Deployment)
@@ -37,7 +35,6 @@ serverless --version
 #### Option A: Serverless Dev Mode
 
 ```bash
-cd golang-serverless-demo
 serverless dev
 ```
 
