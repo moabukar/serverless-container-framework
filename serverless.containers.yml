@@ -1,4 +1,4 @@
-name: serverless-container-framework
+name: graphql-serverless-container-framework
 
 deployment:
   type: awsApi@1.0
@@ -10,9 +10,6 @@ containers:
       pathPattern: /*
       pathHealthCheck: /health
     environment:
-      HELLO: world
+      NODE_ENV: production
     compute:
       type: awsLambda # Can be switched to awsFargateEcs
-    build:
-      options:
-        - --target=awsLambda # Ensure you match the compute type set above
