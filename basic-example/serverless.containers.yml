@@ -1,0 +1,27 @@
+name: express
+
+deployment:
+  type: awsApi@1.0
+
+containers:
+  service:
+    src: ./service
+    routing:
+      pathPattern: /*
+      pathHealthCheck: /health
+    environment:
+      HELLO: world
+    compute:
+      type: awsLambda # or awsFargateEcs
+      # awsIam:
+      #   customPolicy:
+      #     Version: "2012-10-17"
+      #     Statement:
+      #       - Effect: Allow
+      #         Action:
+      #           - dynamodb:*
+      #         Resource:
+      #           - "*"
+
+
+
