@@ -15,6 +15,7 @@ AWS_REGION=eu-west-2 serverless deploy ## try this one...
 
 
 serverless logs --container api-fargate --tail
-
+ 
 serverless remove
+serverless remove --force
 ```
