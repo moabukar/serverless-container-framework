@@ -1,0 +1,165 @@
+namespace: golang-demo-prod
+
+deployment:
+  type: awsApi@1.0
+  # Custom VPC settings (optional)
+  # vpc:
+  #   cidr: 10.0.0.0/16
+  #   subnets:
+  #     - 10.0.1.0/24
+  #     - 10.0.2.0/24
+
+containers:
+  # Lambda configuration with all options
+  api-lambda:
+    src: ./
+    routing:
+      pathPattern: /lambda/*
+      pathHealthCheck: /health
+      # Custom domain (requires ACM certificate)
+      # domain: api.example.com
+      # certificateArn: arn:aws:acm:eu-west-2:123456789012:certificate/xxx
+    compute:
+      type: awsLambda
+      awsLambda:
+        memory: 1024  # 128-10240 MB
+        timeout: 30    # 1-900 seconds
+        reservedConcurrency: 10  # Limit concurrent executions
+        # Provisioned concurrency (pre-warmed instances)
+        # provisionedConcurrency: 2
+    environment:
+      COMPUTE_TYPE: lambda
+      PORT: 8080
+      LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
+      # Load from AWS Secrets Manager
+      # DB_PASSWORD: ${ssm:/myapp/db-password}
+      # API_KEY: ${secretsManager:prod/api/key}
+    awsIam:
+      customPolicy:
+        Version: "2012-10-17"
+        Statement:
+          # DynamoDB access
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:Query
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/users
+          # S3 access
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+            Resource:
+              - !Sub arn:aws:s3:::my-bucket/*
+          # Secrets Manager
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource:
+              - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:prod/*
+
+  # Fargate configuration with all options
+  api-fargate:
+    src: ./
+    routing:
+      pathPattern: /fargate/*
+      pathHealthCheck: /health
+      # Health check configuration
+      pathHealthCheckInterval: 30        # seconds
+      pathHealthCheckTimeout: 5          # seconds
+      pathHealthCheckHealthyThreshold: 2
+      pathHealthCheckUnhealthyThreshold: 3
+    compute:
+      type: awsFargateEcs
+      awsFargateEcs:
+        memory: 2048  # 512-30720 MB (must be valid combination with CPU)
+        cpu: 1024     # 256, 512, 1024, 2048, 4096
+        minInstances: 2   # High availability
+        maxInstances: 10  # Scale up to handle load
+        # Auto-scaling policies
+        autoScaling:
+          targetCpuUtilization: 60        # Scale at 60% CPU
+          targetMemoryUtilization: 70     # Scale at 70% memory
+          scaleInCooldown: 300            # Wait 5 min before scaling in
+          scaleOutCooldown: 60            # Scale out quickly (1 min)
+        # Deployment configuration
+        deploymentConfiguration:
+          maximumPercent: 200             # Allow double capacity during deployment
+          minimumHealthyPercent: 100      # Always keep 100% healthy
+        # Capacity provider strategy (Fargate Spot for cost savings)
+        # capacityProviderStrategy:
+        #   - capacityProvider: FARGATE_SPOT
+        #     weight: 70  # 70% on Spot
+        #     base: 1     # At least 1 on-demand
+        #   - capacityProvider: FARGATE
+        #     weight: 30  # 30% on-demand
+    environment:
+      COMPUTE_TYPE: fargate
+      PORT: 8080
+      LOG_LEVEL: info
+      # Feature flags
+      ENABLE_METRICS: "true"
+      ENABLE_TRACING: "true"
+      # Database connections
+      # DB_HOST: ${ssm:/myapp/db-host}
+      # DB_PORT: "5432"
+      # DB_NAME: myapp
+      # REDIS_URL: ${ssm:/myapp/redis-url}
+    awsIam:
+      customPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:*
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*
+          - Effect: Allow
+            Action:
+              - sqs:SendMessage
+              - sqs:ReceiveMessage
+              - sqs:DeleteMessage
+            Resource:
+              - !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:my-queue
+          - Effect: Allow
+            Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Resource: "*"
+
+  # Additional container for background workers
+  # worker:
+  #   src: ./worker
+  #   compute:
+  #     type: awsFargateEcs
+  #     awsFargateEcs:
+  #       memory: 1024
+  #       cpu: 512
+  #       minInstances: 1
+  #       maxInstances: 5
+  #   environment:
+  #     WORKER_TYPE: background
+  #     QUEUE_URL: ${ssm:/myapp/queue-url}
+
+# Global AWS settings
+# aws:
+#   region: eu-west-2
+#   stage: prod
+#   tags:
+#     Environment: production
+#     Team: platform
+#     CostCenter: engineering
+
+# Monitoring and logging
+# monitoring:
+#   cloudwatch:
+#     logRetention: 7  # days
+#   alarms:
+#     - name: HighErrorRate
+#       threshold: 5
+#       metric: Errors
+#       statistic: Sum
+#       period: 300
+#       evaluationPeriods: 2
